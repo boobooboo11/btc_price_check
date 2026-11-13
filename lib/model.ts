@@ -1,0 +1,6 @@
+export const funds=['IBIT','FBTC','BITB','ARKB','BTCO','EZBC','BRRR','HODL','BTCW','MSBT','GBTC','BTC'];
+export type Flow={date:string;values:(number|null)[];total:number|null;status:string;source:string;updatedAt:string};
+export type Price={date:string;price:number};
+export const plusDay=(date:string,n:number)=>new Date(Date.parse(date+'T00:00:00Z')+n*86400000).toISOString().slice(0,10);
+export function analyze(rows:Flow[],prices:Price[],days:number){const p=new Map(prices.map(x=>[x.date,x.price]));const results=rows.filter(r=>r.status!=='partial'&&r.status!=='closed').map(r=>{const a=p.get(r.date),b=p.get(plusDay(r.date,days));return a&&b?{date:r.date,value:(b/a-1)*100}:null}).filter(x=>x!==null);const values=results.map(r=>r.value).sort((a,b)=>a-b);return {n:values.length,up:values.filter(x=>x>0).length,down:values.filter(x=>x<0).length,flat:values.filter(x=>x===0).length,mean:values.length?values.reduce((a,b)=>a+b,0)/values.length:null,median:values.length?(values[Math.floor((values.length-1)/2)]+values[Math.floor(values.length/2)])/2:null,results};}
+export function consecutive(rows:Flow[]){let n=0;for(const r of [...rows].sort((a,b)=>b.date.localeCompare(a.date))){if(r.status==='closed')continue;if(r.status==='partial'||r.total===null)break;if(r.total>=0)break;n++;}return n;}
